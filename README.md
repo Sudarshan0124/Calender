@@ -79,11 +79,3 @@ src/
 
 All your events are saved automatically to localStorage. Your data will persist between browser sessions on the same device. To clear all data, you can use your browser's developer tools to clear localStorage for this site.
 
-## Browser Support
-
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-That's it! No server setup, no database configuration - just install and start using your calendar.
