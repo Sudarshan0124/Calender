@@ -2,17 +2,16 @@
 
 ## Overview
 
-This is a full-stack event calendar application built with React and Express. The application provides a dynamic, interactive calendar interface where users can manage their schedule by adding, editing, deleting, and viewing events. It features a monthly calendar view with drag-and-drop functionality, recurring events support, and event conflict detection.
+This is a frontend-only event calendar application built with React and Vite. The application provides a dynamic, interactive calendar interface where users can manage their schedule by adding, editing, deleting, and viewing events. It features a monthly calendar view with drag-and-drop functionality, recurring events support, and event conflict detection. All data is persisted locally using browser localStorage.
 
 ## System Architecture
 
-The application follows a monorepo structure with a clear separation between frontend and backend:
+The application is a single-page application (SPA) with no backend dependencies:
 
 - **Frontend**: React application built with Vite, using TypeScript and Tailwind CSS
-- **Backend**: Express.js server with TypeScript support
-- **Database**: PostgreSQL with Drizzle ORM for data persistence
+- **Data Storage**: Browser localStorage for event persistence
 - **UI Components**: Radix UI primitives with shadcn/ui component library
-- **State Management**: TanStack Query for server state and React hooks for local state
+- **State Management**: React hooks for local state management
 
 ## Key Components
 
@@ -23,23 +22,18 @@ The application follows a monorepo structure with a clear separation between fro
 - **Styling**: Tailwind CSS with custom design tokens and CSS variables for theming
 - **Form Handling**: React Hook Form with Zod validation
 
-### Backend Architecture
-- **Express Server**: RESTful API with proper error handling and request logging
-- **Data Layer**: Abstracted storage interface supporting both in-memory and database implementations
-- **Route Handlers**: Organized API endpoints for event CRUD operations
-- **Middleware**: Express middleware for JSON parsing and request logging
-
-### Database Schema
-- **Events Table**: Stores event data with support for recurring events and categorization
-- **Users Table**: Basic user management (currently unused but prepared for future authentication)
-- **Schema Validation**: Drizzle Zod integration for type-safe database operations
+### Data Storage Architecture
+- **LocalStorage Service**: Custom EventStorage class for client-side data persistence
+- **Event Management**: CRUD operations performed directly in the browser
+- **Data Validation**: Zod schemas ensure type safety and data integrity
+- **Auto-sync**: Changes are automatically saved to localStorage
 
 ## Data Flow
 
-1. **Client Requests**: React components make API calls through TanStack Query
-2. **Server Processing**: Express routes handle requests and interact with the storage layer
-3. **Data Persistence**: Storage interface abstracts database operations using Drizzle ORM
-4. **Response Handling**: Optimistic updates and cache invalidation for real-time UI updates
+1. **User Interactions**: React components handle user actions directly
+2. **Local Processing**: Events are managed through the EventStorage service
+3. **Data Persistence**: All data is saved to browser localStorage
+4. **UI Updates**: React state updates trigger immediate UI changes
 5. **Error Management**: Comprehensive error handling with user-friendly toast notifications
 
 ### Event Management Flow
@@ -54,36 +48,28 @@ The application follows a monorepo structure with a clear separation between fro
 - **React Ecosystem**: React 18+ with TypeScript support
 - **UI Framework**: Radix UI primitives for accessibility
 - **Styling**: Tailwind CSS with PostCSS processing
-- **State Management**: TanStack Query for server state
 - **Form Handling**: React Hook Form with Hookform Resolvers
 - **Date Handling**: date-fns for date manipulation and formatting
-
-### Backend Dependencies
-- **Server Framework**: Express.js with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
-- **Connection**: Neon Database serverless PostgreSQL
 - **Validation**: Zod for schema validation
-- **Development**: tsx for TypeScript execution
 
 ### Build Tools
 - **Bundler**: Vite with React plugin
-- **TypeScript**: Full TypeScript support across the stack
-- **Build Process**: Separate build commands for client and server
+- **TypeScript**: Full TypeScript support
+- **Build Process**: Single frontend build command
 
 ## Deployment Strategy
 
-The application is configured for deployment on Replit with the following setup:
+The application is configured for frontend-only deployment:
 
-- **Development**: `npm run dev` starts both client and server in development mode
-- **Build Process**: `npm run build` compiles both frontend and backend
-- **Production**: `npm run start` runs the production server
-- **Database**: PostgreSQL database provisioned through Replit modules
-- **Environment**: Node.js 20 runtime with web and PostgreSQL modules
+- **Development**: Vite dev server runs on port 5000
+- **Build Process**: `vite build` creates production build
+- **Data Storage**: Browser localStorage provides data persistence
+- **Environment**: Node.js 20 runtime for development tools only
 
 ### Replit Configuration
-- **Port Configuration**: Server runs on port 5000 with external port 80
-- **Build Strategy**: Autoscale deployment target
-- **Module Dependencies**: Node.js, web development, and PostgreSQL modules
+- **Port Configuration**: Frontend runs on port 5000
+- **Build Strategy**: Static site deployment
+- **Module Dependencies**: Node.js for development tools only
 
 ## User Preferences
 

@@ -1,86 +1,107 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, addWeeks, addMonths } from "date-fns";
+import { eventStorage } from "@/lib/storage";
 import type { Event, InsertEvent, UpdateEvent } from "@shared/schema";
 
 export function useEvents() {
-  const queryClient = useQueryClient();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
-  // Fetch all events
-  const { 
-    data: events, 
-    isLoading, 
-    error 
-  } = useQuery<Event[]>({
-    queryKey: ["/api/events"],
-  });
+  // Load events on mount
+  useEffect(() => {
+    setIsLoading(true);
+    try {
+      const allEvents = eventStorage.getAllEvents();
+      setEvents(allEvents);
+    } catch (error) {
+      console.error("Failed to load events:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load events. Please refresh the page.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
 
-  // Create event mutation
-  const createEventMutation = useMutation({
-    mutationFn: async (eventData: InsertEvent) => {
-      const response = await apiRequest("POST", "/api/events", eventData);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+  // Create event function
+  const createEventAsync = async (eventData: InsertEvent): Promise<Event> => {
+    setIsCreating(true);
+    try {
+      const newEvent = eventStorage.createEvent(eventData);
+      setEvents(eventStorage.getAllEvents());
       toast({
         title: "Success",
         description: "Event created successfully!",
       });
-    },
-    onError: () => {
+      return newEvent;
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to create event. Please try again.",
         variant: "destructive",
       });
-    },
-  });
+      throw error;
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
-  // Update event mutation
-  const updateEventMutation = useMutation({
-    mutationFn: async ({ id, ...data }: UpdateEvent & { id: number }) => {
-      const response = await apiRequest("PUT", `/api/events/${id}`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Success",
-        description: "Event updated successfully!",
-      });
-    },
-    onError: () => {
+  // Update event function
+  const updateEventAsync = async ({ id, ...data }: UpdateEvent & { id: number }): Promise<Event | undefined> => {
+    setIsUpdating(true);
+    try {
+      const updatedEvent = eventStorage.updateEvent(id, data);
+      if (updatedEvent) {
+        setEvents(eventStorage.getAllEvents());
+        toast({
+          title: "Success",
+          description: "Event updated successfully!",
+        });
+      }
+      return updatedEvent;
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to update event. Please try again.",
         variant: "destructive",
       });
-    },
-  });
+      throw error;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
-  // Delete event mutation
-  const deleteEventMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/events/${id}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
-      toast({
-        title: "Success",
-        description: "Event deleted successfully!",
-      });
-    },
-    onError: () => {
+  // Delete event function
+  const deleteEventAsync = async (id: number): Promise<boolean> => {
+    setIsDeleting(true);
+    try {
+      const deleted = eventStorage.deleteEvent(id);
+      if (deleted) {
+        setEvents(eventStorage.getAllEvents());
+        toast({
+          title: "Success",
+          description: "Event deleted successfully!",
+        });
+      }
+      return deleted;
+    } catch (error) {
       toast({
         title: "Error",
         description: "Failed to delete event. Please try again.",
         variant: "destructive",
       });
-    },
-  });
+      throw error;
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Generate recurring events
   const generateRecurringEvents = (event: InsertEvent): InsertEvent[] => {
@@ -150,8 +171,6 @@ export function useEvents() {
 
   // Check for event conflicts
   const checkConflicts = async (eventData: InsertEvent, excludeId?: number): Promise<Event[]> => {
-    if (!events) return [];
-    
     return events.filter(event => {
       if (excludeId && event.id === excludeId) return false;
       return event.date === eventData.date && event.time === eventData.time;
@@ -163,30 +182,29 @@ export function useEvents() {
     const eventsToCreate = generateRecurringEvents(eventData);
     
     for (const event of eventsToCreate) {
-      await createEventMutation.mutateAsync(event);
+      await createEventAsync(event);
     }
   };
 
   // Update event
   const updateEvent = async (data: UpdateEvent & { id: number }) => {
-    await updateEventMutation.mutateAsync(data);
+    await updateEventAsync(data);
   };
 
   // Delete event
   const deleteEvent = async (id: number) => {
-    await deleteEventMutation.mutateAsync(id);
+    await deleteEventAsync(id);
   };
 
   return {
-    events: events || [],
+    events,
     isLoading,
-    error,
     createEvent,
     updateEvent,
     deleteEvent,
     checkConflicts,
-    isCreating: createEventMutation.isPending,
-    isUpdating: updateEventMutation.isPending,
-    isDeleting: deleteEventMutation.isPending,
+    isCreating,
+    isUpdating,
+    isDeleting,
   };
 }
