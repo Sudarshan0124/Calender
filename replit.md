@@ -1,17 +1,18 @@
-# Event Calendar Application
+# Frontend Event Calendar Application
 
 ## Overview
 
-This is a frontend-only event calendar application built with React and Vite. The application provides a dynamic, interactive calendar interface where users can manage their schedule by adding, editing, deleting, and viewing events. It features a monthly calendar view with drag-and-drop functionality, recurring events support, and event conflict detection. All data is persisted locally using browser localStorage.
+This is a complete frontend-only event calendar application built with React, TypeScript, and Vite. The application provides a dynamic, interactive calendar interface where users can manage their schedule by adding, editing, deleting, and viewing events. It features a monthly calendar view with drag-and-drop functionality, recurring events support, and event conflict detection. All data is persisted locally using browser localStorage with no backend dependencies.
 
 ## System Architecture
 
-The application is a single-page application (SPA) with no backend dependencies:
+The application is a single-page application (SPA) running entirely in the browser:
 
-- **Frontend**: React application built with Vite, using TypeScript and Tailwind CSS
-- **Data Storage**: Browser localStorage for event persistence
+- **Frontend**: React 18 application built with Vite, using TypeScript and Tailwind CSS
+- **Data Storage**: Browser localStorage for complete event persistence
 - **UI Components**: Radix UI primitives with shadcn/ui component library
 - **State Management**: React hooks for local state management
+- **Build System**: Vite for fast development and production builds
 
 ## Key Components
 
